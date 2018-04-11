@@ -20,6 +20,10 @@
         android:title="Toggle points"
         app:showAsAction="never"/>
     <item
+        android:id="@+id/action_toggle_gradient"
+        android:title="Toggle gradient"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/action_toggle_cubic"
         android:title="Toggle Cubic curve"
         app:showAsAction="never"/>
@@ -28,12 +32,20 @@
         android:title="Toggle area"
         app:showAsAction="never"/>
     <item
+        android:id="@+id/action_point_color"
+        android:title="Toggle Point Color"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/action_shape_circles"
         android:title="Circle shape"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_shape_square"
         android:title="Square shape"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_shape_diamond"
+        android:title="Diamond shape"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_toggle_axes"

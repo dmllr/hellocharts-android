@@ -1,24 +1,29 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+
+//To upload to maven central
+//http://zserge.com/blog/gradle-maven-publish.html
+//gradle uploadArchives
 
 buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'com.android.tools.build:gradle:0.12.+'
-  }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.1.0'
+    }
 }
 
 dependencies {
     //compile fileTree(dir: 'libs', include: '*.jar')
-    compile 'com.android.support:support-v4:21.0.+'
+    compile 'com.android.support:support-v4:23.4.0'
 }
 
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.0.2"
+    compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
+    buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -26,11 +31,10 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 8
-        targetSdkVersion 19
-        versionCode 1
-        versionName '1.0'
-        applicationId 'lecho.lib.hellocharts'
+        minSdkVersion Integer.parseInt(project.ANDROID_BUILD_MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
+        versionCode Integer.parseInt(project.VERSION_CODE)
+        versionName project.VERSION_NAME
     }
 
     sourceSets {
@@ -44,23 +48,30 @@ android {
             assets.srcDirs = ['assets']
         }
     }
-	
-	 buildTypes {
-		release {
-			runProguard false
-			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-		}
-	}
 
-	lintOptions {
-		abortOnError false
-	}
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
 
 }
 
-task androidSourcesJar(type: Jar) {
-	classifier = 'sources'
-	from android.sourceSets.main.java.sourceFiles
+//Execute "gradle clean jarRelease" to cook jar.
+android.libraryVariants.all { variant ->
+    def name = variant.buildType.name
+    if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+        return; // Skip debug builds.
+    }
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    task.from variant.javaCompile.destinationDir
+    artifacts.add('archives', task);
 }
 
 // To publish to maven local execute "gradle clean build publishToMavenLocal"
@@ -69,17 +80,18 @@ android.libraryVariants
 publishing {
     publications {
         maven(MavenPublication) {
-            artifact "${project.buildDir}/outputs/aar/${project.name}.aar"
-            artifactId project.name
-            groupId android.defaultConfig.applicationId
-            version android.defaultConfig.versionName
-			
-			artifact androidSourcesJar {
-                classifier "sources"
-            }
+            artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+            artifactId = POM_ARTIFACT_ID
+            groupId = GROUP
+            version = VERSION_NAME
+
+            // Task androidSourcesJar is provided by gradle-mvn-push.gradle
+            //artifact androidSourcesJar {
+            //    classifier "sources"
+            //}
         }
     }
-    
+
     repositories {
         maven {
             credentials {

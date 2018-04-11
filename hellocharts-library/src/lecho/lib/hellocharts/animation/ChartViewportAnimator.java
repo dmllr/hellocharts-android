@@ -4,14 +4,16 @@ import lecho.lib.hellocharts.model.Viewport;
 
 public interface ChartViewportAnimator {
 
-	public static final int FAST_ANIMATION_DURATION = 300;
+    public static final int FAST_ANIMATION_DURATION = 300;
 
-	public void startAnimation(Viewport startViewport, Viewport targetViewport);
+    public void startAnimation(Viewport startViewport, Viewport targetViewport);
 
-	public void cancelAnimation();
+    public void startAnimation(Viewport startViewport, Viewport targetViewport, long duration);
 
-	public boolean isAnimationStarted();
+    public void cancelAnimation();
 
-	public void setChartAnimationListener(ChartAnimationListener animationListener);
+    public boolean isAnimationStarted();
+
+    public void setChartAnimationListener(ChartAnimationListener animationListener);
 
 }

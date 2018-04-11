@@ -1,281 +1,300 @@
 package lecho.lib.hellocharts.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lecho.lib.hellocharts.view.Chart;
-import lecho.lib.hellocharts.view.PieChartView;
 import android.graphics.Color;
 import android.graphics.Typeface;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lecho.lib.hellocharts.formatter.PieChartValueFormatter;
+import lecho.lib.hellocharts.formatter.SimplePieChartValueFormatter;
+import lecho.lib.hellocharts.view.Chart;
+import lecho.lib.hellocharts.view.PieChartView;
+
 /**
  * Data for PieChart, by default it doesn't have axes.
- * 
  */
 public class PieChartData extends AbstractChartData {
-	public static final int DEFAULT_CENTER_TEXT1_SIZE_SP = 42;
-	public static final int DEFAULT_CENTER_TEXT2_SIZE_SP = 16;
-	public static final float DEFAULT_CENTER_CIRCLE_SCALE = 0.6f;
+    public static final int DEFAULT_CENTER_TEXT1_SIZE_SP = 42;
+    public static final int DEFAULT_CENTER_TEXT2_SIZE_SP = 16;
+    public static final float DEFAULT_CENTER_CIRCLE_SCALE = 0.6f;
+    private static final int DEFAULT_SLICE_SPACING_DP = 2;
+    private int centerText1FontSize = DEFAULT_CENTER_TEXT1_SIZE_SP;
+    private int centerText2FontSize = DEFAULT_CENTER_TEXT2_SIZE_SP;
+    private float centerCircleScale = DEFAULT_CENTER_CIRCLE_SCALE;
+    private int slicesSpacing = DEFAULT_SLICE_SPACING_DP;
+    private PieChartValueFormatter formatter = new SimplePieChartValueFormatter();
+    private boolean hasLabels = false;
+    private boolean hasLabelsOnlyForSelected = false;
+    private boolean hasLabelsOutside = false;
+    private boolean hasCenterCircle = false;
+    private int centerCircleColor = Color.TRANSPARENT;
+    private int centerText1Color = Color.BLACK;
+    private Typeface centerText1Typeface;
+    private String centerText1;
+    private int centerText2Color = Color.BLACK;
+    private Typeface centerText2Typeface;
+    private String centerText2;
 
-	private ValueFormatter formatter = new SimpleValueFormatter();
-	private boolean hasLabels = false;
-	private boolean hasLabelsOnlyForSelected = false;
-	private boolean hasLabelsOutside = false;
+    private List<SliceValue> values = new ArrayList<SliceValue>();
 
-	private boolean hasCenterCircle = false;
-	private int centerCircleColor = Color.WHITE;
-	private float centerCircleScale = 0.6f;
+    public PieChartData() {
+        setAxisXBottom(null);
+        setAxisYLeft(null);
+    }
 
-	private int centerText1Color = Color.BLACK;
-	private int centerText1FontSize = DEFAULT_CENTER_TEXT1_SIZE_SP;
-	private Typeface centerText1Typeface;
-	private String centerText1;
+    public PieChartData(List<SliceValue> values) {
+        setValues(values);
+        // Empty axes. Pie chart don't need axes.
+        setAxisXBottom(null);
+        setAxisYLeft(null);
+    }
 
-	private int centerText2Color = Color.BLACK;
-	private int centerText2FontSize = DEFAULT_CENTER_TEXT2_SIZE_SP;
-	private Typeface centerText2Typeface;
-	private String centerText2;
+    public PieChartData(PieChartData data) {
+        super(data);
+        this.formatter = data.formatter;
+        this.hasLabels = data.hasLabels;
+        this.hasLabelsOnlyForSelected = data.hasLabelsOnlyForSelected;
+        this.hasLabelsOutside = data.hasLabelsOutside;
 
-	private List<ArcValue> values = new ArrayList<ArcValue>();
+        this.hasCenterCircle = data.hasCenterCircle;
+        this.centerCircleColor = data.centerCircleColor;
+        this.centerCircleScale = data.centerCircleScale;
 
-	public PieChartData() {
-		setAxisXBottom(null);
-		setAxisYLeft(null);
-	};
+        this.centerText1Color = data.centerText1Color;
+        this.centerText1FontSize = data.centerText1FontSize;
+        this.centerText1Typeface = data.centerText1Typeface;
+        this.centerText1 = data.centerText1;
 
-	public PieChartData(List<ArcValue> values) {
-		setValues(values);
-		// Empty axes. Pie chart don't need axes.
-		setAxisXBottom(null);
-		setAxisYLeft(null);
-	}
+        this.centerText2Color = data.centerText2Color;
+        this.centerText2FontSize = data.centerText2FontSize;
+        this.centerText2Typeface = data.centerText2Typeface;
+        this.centerText2 = data.centerText2;
 
-	public PieChartData(PieChartData data) {
-		super(data);
-		this.formatter = data.formatter;
-		this.hasLabels = data.hasLabels;
-		this.hasLabelsOnlyForSelected = data.hasLabelsOnlyForSelected;
-		this.hasLabelsOutside = data.hasLabelsOutside;
+        for (SliceValue sliceValue : data.values) {
+            this.values.add(new SliceValue(sliceValue));
+        }
+    }
 
-		this.hasCenterCircle = data.hasCenterCircle;
-		this.centerCircleColor = data.centerCircleColor;
-		this.centerCircleScale = data.centerCircleScale;
+    public static PieChartData generateDummyData() {
+        final int numValues = 4;
+        PieChartData data = new PieChartData();
+        List<SliceValue> values = new ArrayList<SliceValue>(numValues);
+        values.add(new SliceValue(40f));
+        values.add(new SliceValue(20f));
+        values.add(new SliceValue(30f));
+        values.add(new SliceValue(50f));
+        data.setValues(values);
+        return data;
+    }
 
-		this.centerText1Color = data.centerText1Color;
-		this.centerText1FontSize = data.centerText1FontSize;
-		this.centerText1Typeface = data.centerText1Typeface;
-		this.centerText1 = data.centerText1;
+    @Override
+    public void update(float scale) {
+        for (SliceValue value : values) {
+            value.update(scale);
+        }
+    }
 
-		this.centerText2Color = data.centerText2Color;
-		this.centerText2FontSize = data.centerText2FontSize;
-		this.centerText2Typeface = data.centerText2Typeface;
-		this.centerText2 = data.centerText2;
+    @Override
+    public void finish() {
+        for (SliceValue value : values) {
+            value.finish();
+        }
+    }
 
-		for (ArcValue arcValue : data.values) {
-			this.values.add(new ArcValue(arcValue));
-		}
-	}
+    /**
+     * PieChart does not support axes so method call will be ignored
+     */
+    @Override
+    public void setAxisXBottom(Axis axisX) {
+        super.setAxisXBottom(null);
+    }
 
-	@Override
-	public void update(float scale) {
-		for (ArcValue value : values) {
-			value.update(scale);
-		}
-	}
+    /**
+     * PieChart does not support axes so method call will be ignored
+     */
+    @Override
+    public void setAxisYLeft(Axis axisY) {
+        super.setAxisYLeft(null);
+    }
 
-	@Override
-	public void finish() {
-		for (ArcValue value : values) {
-			value.finish();
-		}
-	}
+    public List<SliceValue> getValues() {
+        return values;
+    }
 
-	/**
-	 * PieChart does not support axes so method call will be ignored
-	 */
-	@Override
-	public void setAxisXBottom(Axis axisX) {
-		super.setAxisXBottom(null);
-	}
+    public PieChartData setValues(List<SliceValue> values) {
+        if (null == values) {
+            this.values = new ArrayList<SliceValue>();
+        } else {
+            this.values = values;
+        }
+        return this;
+    }
 
-	/**
-	 * PieChart does not support axes so method call will be ignored
-	 */
-	@Override
-	public void setAxisYLeft(Axis axisY) {
-		super.setAxisYLeft(null);
-	}
+    public boolean hasLabels() {
+        return hasLabels;
+    }
 
-	public List<ArcValue> getValues() {
-		return values;
-	}
+    public PieChartData setHasLabels(boolean hasLabels) {
+        this.hasLabels = hasLabels;
+        if (hasLabels) {
+            hasLabelsOnlyForSelected = false;
+        }
+        return this;
+    }
 
-	public PieChartData setValues(List<ArcValue> values) {
-		if (null == values) {
-			this.values = new ArrayList<ArcValue>();
-		} else {
-			this.values = values;
-		}
-		return this;
-	}
+    /**
+     * @see #setHasLabelsOnlyForSelected(boolean)
+     */
+    public boolean hasLabelsOnlyForSelected() {
+        return hasLabelsOnlyForSelected;
+    }
 
-	public boolean hasLabels() {
-		return hasLabels;
-	}
+    /**
+     * Set true if you want to show value labels only for selected value, works best when chart has
+     * isValueSelectionEnabled set to true {@link Chart#setValueSelectionEnabled(boolean)}.
+     */
+    public PieChartData setHasLabelsOnlyForSelected(boolean hasLabelsOnlyForSelected) {
+        this.hasLabelsOnlyForSelected = hasLabelsOnlyForSelected;
+        if (hasLabelsOnlyForSelected) {
+            this.hasLabels = false;
+        }
+        return this;
+    }
 
-	public PieChartData setHasLabels(boolean hasLabels) {
-		this.hasLabels = hasLabels;
-		if (hasLabels) {
-			hasLabelsOnlyForSelected = false;
-		}
-		return this;
-	}
+    public boolean hasLabelsOutside() {
+        return hasLabelsOutside;
+    }
 
-	/**
-	 * @see #setHasLabelsOnlyForSelected(boolean)
-	 */
-	public boolean hasLabelsOnlyForSelected() {
-		return hasLabelsOnlyForSelected;
-	}
+    /**
+     * Set if labels should be drawn inside circle(false) or outside(true). By default false. If you set it to true you
+     * should also change chart fill ration using {@link PieChartView#setCircleFillRatio(float)}. This flag is used only
+     * if you also set hasLabels or hasLabelsOnlyForSelected flags.
+     */
+    public PieChartData setHasLabelsOutside(boolean hasLabelsOutside) {
+        this.hasLabelsOutside = hasLabelsOutside;
+        return this;
+    }
 
-	/**
-	 * Set true if you want to show value labels only for selected value, works best when chart has
-	 * isValueSelectionEnabled set to true {@link Chart#setValueSelectionEnabled(boolean)}.
-	 */
-	public PieChartData setHasLabelsOnlyForSelected(boolean hasLabelsOnlyForSelected) {
-		this.hasLabelsOnlyForSelected = hasLabelsOnlyForSelected;
-		if (hasLabelsOnlyForSelected) {
-			this.hasLabels = false;
-		}
-		return this;
-	}
+    public boolean hasCenterCircle() {
+        return hasCenterCircle;
+    }
 
-	public boolean hasLabelsOutside() {
-		return hasLabelsOutside;
-	}
+    public PieChartData setHasCenterCircle(boolean hasCenterCircle) {
+        this.hasCenterCircle = hasCenterCircle;
+        return this;
+    }
 
-	/**
-	 * Set if labels should be drawn inside circle(false) or outside(true). By default false. If you set it to true you
-	 * should also change chart fill ration using {@link PieChartView#setCircleFillRatio(float)}. This flag is used only
-	 * if you also set hasLabels or hasLabelsOnlyForSelected flags.
-	 */
-	public void setHasLabelsOutside(boolean hasLabelsOutside) {
-		this.hasLabelsOutside = hasLabelsOutside;
-	}
+    public int getCenterCircleColor() {
+        return centerCircleColor;
+    }
 
-	public boolean hasCenterCircle() {
-		return hasCenterCircle;
-	}
+    public PieChartData setCenterCircleColor(int centerCircleColor) {
+        this.centerCircleColor = centerCircleColor;
+        return this;
+    }
 
-	public void setHasCenterCircle(boolean hasCenterCircle) {
-		this.hasCenterCircle = hasCenterCircle;
-	}
+    public float getCenterCircleScale() {
+        return centerCircleScale;
+    }
 
-	public int getCenterCircleColor() {
-		return centerCircleColor;
-	}
+    public PieChartData setCenterCircleScale(float centerCircleScale) {
+        this.centerCircleScale = centerCircleScale;
+        return this;
+    }
 
-	public void setCenterCircleColor(int centerCircleColor) {
-		this.centerCircleColor = centerCircleColor;
-	}
+    public int getCenterText1Color() {
+        return centerText1Color;
+    }
 
-	public float getCenterCircleScale() {
-		return centerCircleScale;
-	}
+    public PieChartData setCenterText1Color(int centerText1Color) {
+        this.centerText1Color = centerText1Color;
+        return this;
+    }
 
-	public void setCenterCircleScale(float centerCircleScale) {
-		this.centerCircleScale = centerCircleScale;
-	}
+    public int getCenterText1FontSize() {
+        return centerText1FontSize;
+    }
 
-	public int getCenterText1Color() {
-		return centerText1Color;
-	}
+    public PieChartData setCenterText1FontSize(int centerText1FontSize) {
+        this.centerText1FontSize = centerText1FontSize;
+        return this;
+    }
 
-	public void setCenterText1Color(int centerText1Color) {
-		this.centerText1Color = centerText1Color;
-	}
+    public Typeface getCenterText1Typeface() {
+        return centerText1Typeface;
+    }
 
-	public int getCenterText1FontSize() {
-		return centerText1FontSize;
-	}
+    public PieChartData setCenterText1Typeface(Typeface text1Typeface) {
+        this.centerText1Typeface = text1Typeface;
+        return this;
+    }
 
-	public void setCenterText1FontSize(int centerText1FontSize) {
-		this.centerText1FontSize = centerText1FontSize;
-	}
+    public String getCenterText1() {
+        return centerText1;
+    }
 
-	public Typeface getCenterText1Typeface() {
-		return centerText1Typeface;
-	}
+    public PieChartData setCenterText1(String centerText1) {
+        this.centerText1 = centerText1;
+        return this;
+    }
 
-	public void setCenterText1Typeface(Typeface text1Typeface) {
-		this.centerText1Typeface = text1Typeface;
-	}
+    public String getCenterText2() {
+        return centerText2;
+    }
 
-	public String getCenterText1() {
-		return centerText1;
-	}
+    /**
+     * Note that centerText2 will be drawn only if centerText1 is not empty/null.
+     */
+    public PieChartData setCenterText2(String centerText2) {
+        this.centerText2 = centerText2;
+        return this;
+    }
 
-	public void setCenterText1(String centerText1) {
-		this.centerText1 = centerText1;
-	}
+    public int getCenterText2Color() {
+        return centerText2Color;
+    }
 
-	public String getCenterText2() {
-		return centerText2;
-	}
+    public PieChartData setCenterText2Color(int centerText2Color) {
+        this.centerText2Color = centerText2Color;
+        return this;
+    }
 
-	/**
-	 * Note that centerText2 will be drawn only if centerText1 is not empty/null.
-	 */
-	public void setCenterText2(String centerText2) {
-		this.centerText2 = centerText2;
-	}
+    public int getCenterText2FontSize() {
+        return centerText2FontSize;
+    }
 
-	public int getCenterText2Color() {
-		return centerText2Color;
-	}
+    public PieChartData setCenterText2FontSize(int centerText2FontSize) {
+        this.centerText2FontSize = centerText2FontSize;
+        return this;
+    }
 
-	public void setCenterText2Color(int centerText2Color) {
-		this.centerText2Color = centerText2Color;
-	}
+    public Typeface getCenterText2Typeface() {
+        return centerText2Typeface;
+    }
 
-	public int getCenterText2FontSize() {
-		return centerText2FontSize;
-	}
+    public PieChartData setCenterText2Typeface(Typeface text2Typeface) {
+        this.centerText2Typeface = text2Typeface;
+        return this;
+    }
 
-	public void setCenterText2FontSize(int centerText2FontSize) {
-		this.centerText2FontSize = centerText2FontSize;
-	}
+    public int getSlicesSpacing() {
+        return slicesSpacing;
+    }
 
-	public Typeface getCenterText2Typeface() {
-		return centerText2Typeface;
-	}
+    public PieChartData setSlicesSpacing(int sliceSpacing) {
+        this.slicesSpacing = sliceSpacing;
+        return this;
+    }
 
-	public void setCenterText2Typeface(Typeface text2Typeface) {
-		this.centerText2Typeface = text2Typeface;
-	}
+    public PieChartValueFormatter getFormatter() {
+        return formatter;
+    }
 
-	public ValueFormatter getFormatter() {
-		return formatter;
-	}
-
-	public PieChartData setFormatter(ValueFormatter formatter) {
-		if (null == formatter) {
-			this.formatter = new SimpleValueFormatter();
-		} else {
-			this.formatter = formatter;
-		}
-		return this;
-	}
-
-	public static PieChartData generateDummyData() {
-		final int numValues = 4;
-		PieChartData data = new PieChartData();
-		List<ArcValue> values = new ArrayList<ArcValue>(numValues);
-		values.add(new ArcValue(40f));
-		values.add(new ArcValue(20f));
-		values.add(new ArcValue(30f));
-		values.add(new ArcValue(50f));
-		data.setValues(values);
-		return data;
-	}
+    public PieChartData setFormatter(PieChartValueFormatter formatter) {
+        if (null != formatter) {
+            this.formatter = formatter;
+        }
+        return this;
+    }
 }

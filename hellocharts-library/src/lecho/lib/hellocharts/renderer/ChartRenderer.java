@@ -1,77 +1,63 @@
 package lecho.lib.hellocharts.renderer;
 
+import android.graphics.Canvas;
+
 import lecho.lib.hellocharts.model.SelectedValue;
 import lecho.lib.hellocharts.model.Viewport;
-import android.graphics.Canvas;
 
 /**
  * Interface for all chart renderer.
  */
 public interface ChartRenderer {
 
-	/**
-	 * Initialize maximum viewport, called when chart data changed.Usually you will have to do some calculation in
-	 * implementation of that method. If isViewportCalculationEnabled is false this method should do nothing.
-	 */
-	public void initMaxViewport();
+    public void onChartSizeChanged();
 
-	/**
-	 * Initialize currentViewport, usually set it equals to maxViewport. If isViewportCalculationEnabled is false this
-	 * method should do nothing.
-	 */
-	public void initCurrentViewport();
+    public void onChartDataChanged();
 
-	/**
-	 * Initialize measurements i.e. circle area for PieChart.
-	 */
-	public void initDataMeasuremetns();
+    public void onChartViewportChanged();
 
-	/**
-	 * Initialize common data attributes label font size, font color etc. Should be called before viewports
-	 * initializations.
-	 */
-	public void initDataAttributes();
+    public void resetRenderer();
 
-	/**
-	 * Draw chart data.
-	 */
-	public void draw(Canvas canvas);
+    /**
+     * Draw chart data.
+     */
+    public void draw(Canvas canvas);
 
-	/**
-	 * Draw chart data that should not be clipped to contentRect area.
-	 */
-	public void drawUnclipped(Canvas canvas);
+    /**
+     * Draw chart data that should not be clipped to contentRect area.
+     */
+    public void drawUnclipped(Canvas canvas);
 
-	/**
-	 * Checks if given pixel coordinates corresponds to any chart value. If yes return true and set selectedValue, if
-	 * not selectedValue should be *cleared* and method should return false.
-	 */
-	public boolean checkTouch(float touchX, float touchY);
+    /**
+     * Checks if given pixel coordinates corresponds to any chart value. If yes return true and set selectedValue, if
+     * not selectedValue should be *cleared* and method should return false.
+     */
+    public boolean checkTouch(float touchX, float touchY);
 
-	/**
-	 * Returns true if there is value selected.
-	 */
-	public boolean isTouched();
+    /**
+     * Returns true if there is value selected.
+     */
+    public boolean isTouched();
 
-	/**
-	 * Clear value selection.
-	 */
-	public void clearTouch();
+    /**
+     * Clear value selection.
+     */
+    public void clearTouch();
 
-	public void setMaxViewport(Viewport maxViewport);
+    public Viewport getMaximumViewport();
 
-	public Viewport getMaxViewport();
+    public void setMaximumViewport(Viewport maxViewport);
 
-	public void setCurrentViewport(Viewport viewport);
+    public Viewport getCurrentViewport();
 
-	public Viewport getCurrentViewport();
+    public void setCurrentViewport(Viewport viewport);
 
-	public boolean isViewportCalculationEnabled();
+    public boolean isViewportCalculationEnabled();
 
-	public void setViewportCalculationEnabled(boolean isEnabled);
+    public void setViewportCalculationEnabled(boolean isEnabled);
 
-	public void selectValue(SelectedValue selectedValue);
+    public void selectValue(SelectedValue selectedValue);
 
-	public SelectedValue getSelectedValue();
+    public SelectedValue getSelectedValue();
 
 }
